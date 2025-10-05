@@ -11,6 +11,7 @@
 ### Packages:
 - Prisma's ORM
 - ExpressJS + the "cors" middleware
+- HTTP + HTTPS NodeJS libraries
 - Moment
 - Chalk
 - Axios
