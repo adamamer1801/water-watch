@@ -9,5 +9,6 @@ export async function isDatabaseHealthy(): Promise<boolean> {
     log("fatal", "Database", e.toString());
     returnval = false;
   }
+  
   return returnval;
 }
