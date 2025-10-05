@@ -4,4 +4,4 @@ data/*
 prisma/migrations
 sample/
 data.db
-.*
+._*
