@@ -1,0 +1,26 @@
+datasource db {
+  provider = "postgresql"
+
+  url = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Test {
+  testmessage String @id
+}
+
+model LatLongPairs {
+  entry       Float @id
+  lat         Float
+  lon         Float
+  lwe         Float
+  uncertainty Float
+  timestamp   Int
+}
+
+model nFiles {
+  n Int @id
+}
