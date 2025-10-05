@@ -1,0 +1,462 @@
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+            name="description"
+            content="Monitor soil moisture (SMAP) and groundwater (GRACE) data with quick links to NASA resources"
+        />
+        <link
+            rel="icon"
+            type="image/svg+xml"
+            href="https://www.nasa.gov/wp-content/themes/nasa/assets/images/nasa-logo.svg"
+        />
+        <title>Watch the Water — SMAP & GRACE</title>
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet/dist/leaflet.css"
+        />
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+        <style>
+            :root {
+                --bg: #e9f0fb;
+                --card: #ffffff;
+                --accent: #003366;
+                --muted: #5b6b89;
+                --action: #0077b6;
+                --radius: 12px;
+                --max-width: 1100px;
+                color-scheme: light;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family:
+                    Inter,
+                    system-ui,
+                    -apple-system,
+                    "Segoe UI",
+                    Roboto,
+                    "Helvetica Neue",
+                    Arial;
+                background: linear-gradient(180deg, #e6f0ff 0%, var(--bg) 100%);
+                color: var(--accent);
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                line-height: 1.4;
+            }
+
+            header {
+                background: var(--accent);
+                color: #fff;
+                padding: 28px 16px;
+                text-align: center;
+            }
+
+            header .wrap {
+                max-width: var(--max-width);
+                margin: 0 auto;
+            }
+            header h1 {
+                margin: 0;
+                font-size: clamp(1.4rem, 2.6vw, 2rem);
+                letter-spacing: 0.6px;
+            }
+            header p {
+                margin: 8px 0 0;
+                color: rgba(255, 255, 255, 0.9);
+            }
+
+            main {
+                max-width: var(--max-width);
+                margin: 28px auto;
+                padding: 0 16px;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            .card {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 18px;
+                box-shadow: 0 6px 18px rgba(3, 20, 50, 0.08);
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .card h2 {
+                margin: 0 0 8px;
+                color: var(--accent);
+                font-size: 1.1rem;
+            }
+            .card p {
+                margin: 0 0 12px;
+                color: var(--muted);
+                font-size: 0.95rem;
+            }
+            .actions {
+                margin-top: auto;
+                display: flex;
+                gap: 10px;
+            }
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 14px;
+                border-radius: 10px;
+                border: 0;
+                background: var(--action);
+                color: #fff;
+                text-decoration: none;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            .btn.secondary {
+                background: #f1f5f9;
+                color: var(--accent);
+                border: 1px solid rgba(3, 20, 50, 0.06);
+            }
+            .btn:focus {
+                outline: 3px solid rgba(0, 119, 182, 0.18);
+                outline-offset: 3px;
+            }
+
+            .note {
+                font-size: 0.9rem;
+                color: var(--muted);
+                text-align: center;
+                margin-top: 18px;
+            }
+
+            footer {
+                max-width: var(--max-width);
+                margin: 28px auto 40px;
+                padding: 0 16px;
+                text-align: center;
+                color: var(--muted);
+                font-size: 0.9rem;
+            }
+
+            @media (max-width: 900px) {
+                .grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+            #map {
+                height: 400px;
+                width: 100%;
+                border-radius: var(--radius);
+                margin-top: 16px;
+            }
+
+            #liveData {
+                min-height: 150px;
+                background: #f8fbff;
+                border-radius: 10px;
+                padding: 12px;
+                font-family: monospace;
+                overflow: auto;
+                font-size: 0.85rem;
+            }
+
+            .latlonginputcontainer {
+                margin: 1vh;
+                height: 100%;
+                width: 100%;
+            }
+
+            .latlonginputdiv {
+                display: flex;
+            }
+
+            .latlonginput {
+                width: 20%;
+                height: 100%;
+                margin-left: 1vw;
+            }
+
+            table {
+                width: 100%;
+                height: 100%;
+            }
+            tr {
+                height: 10%;
+                text-align: left;
+                i
+	    }
+
+	    a {
+		margin: 3px;
+	    }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="wrap">
+                <h1>Watch the Water</h1>
+                <p>
+                    Quick access to NASA SMAP (soil moisture) and GRACE
+                    (groundwater) resources
+                </p>
+            </div>
+        </header>
+        <main>
+            <section class="grid" aria-label="Data sources">
+                <article class="card" aria-labelledby="smapTitle">
+                    <h2 id="smapTitle">SMAP — Soil Moisture Active Passive</h2>
+                    <p>
+                        SMAP provides global measurements of surface soil
+                        moisture. Open the official SMAP site for maps, data,
+                        and documentation.
+                    </p>
+                    <div class="actions">
+                        <a
+                            class="btn"
+                            href="https://smap.jpl.nasa.gov/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            >Open SMAP</a
+                        >
+                        <a
+                            class="btn secondary"
+                            href="https://smap.jpl.nasa.gov/data/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            >SMAP Data</a
+                        >
+                    </div>
+                </article>
+                <article class="card" aria-labelledby="graceTitle">
+                    <h2 id="graceTitle">GRACE & GRACE-FO — Groundwater</h2>
+                    <p>
+                        GRACE measures changes in Earth's gravity field that can
+                        be used to estimate changes in water storage. Visit the
+                        GRACE portal for datasets and visualizations.
+                    </p>
+                    <div class="actions">
+                        <a
+                            class="btn"
+                            href="https://gracefo.jpl.nasa.gov/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            >Open GRACE</a
+                        >
+                        <a
+                            class="btn secondary"
+                            href="https://grace.jpl.nasa.gov/data/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            >GRACE Data</a
+                        >
+                    </div>
+                </article>
+            </section>
+            <article
+                class="card"
+                aria-labelledby="liveTitle"
+                style="margin-top: 24px"
+            >
+                <h2 id="liveTitle">Live Groundwater Level Data(NASA GRACE)</h2>
+                <p>
+                    Below is the latest Grace data retrieved directly from
+                    NASA’s GRACE and GRACE-FO mission
+                </p>
+                <hr />
+                <div class="latlonginputcontainer">
+                    <strong>Coordinates</strong>
+                    <div class="latlonginputdiv">
+                        <p>Latitude:</p>
+                        <input
+                            id="latinput"
+                            class="latinput latlonginput"
+                            placeholder="Latitude"
+                            type="number"
+                        />
+                    </div>
+                    <div class="latlonginputdiv">
+                        <p>Longitude:</p>
+                        <input
+                            id="loninput"
+                            class="latinput latlonginput"
+                            placeholder="Longitude"
+                            type="number"
+                        />
+                    </div>
+                    <hr />
+                    <a class="btn" target="_blank" onclick="fetchGRACE()"
+                        >Give me the data!</a
+                    >
+                    <a class="btn" target="_blank" onclick="setLocation()">
+                        Fill in my coordinates</a
+                    >
+		    <hr />
+		    <span>The "Liquid Water Equivalence" (LWE) column indicates the total mass of water in a specific volume, expressed as depth of that water if it were in a liquid state. A negative LWE value represents a loss of groundwater compared to the average and vice versa.
+                </div>
+
+                <div id="liveData" class="table table-striped">
+                    Choose coordinates or use your location
+                </div>
+                <div id="map"></div>
+            </article>
+            <p class="note"></p>
+            <div style="text-align: center; margin-top: 26px">
+                <a
+                    id="Donate For A Greater Cause"
+                    class="btn"
+                    href="https://www.paypal.com/donate?business=YOUR_PAYPAL_ID"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Donate</a
+                >
+            </div>
+        </main>
+        <footer>Felix Landerer. 2023. JPL TELLUS GRACE-FO Level-3 Monthly Land Water-Equivalent-Thickness Surface Mass Anomaly Release 6.3 version 04. Ver. RL06.3v04. PO.DAAC, CA, USA. Dataset accessed 2025-10-05 at https://doi.org/10.5067/GFLND-3J634</footer>
+        <script>
+            const backendURL = "https://waterwatch.earth:8443";
+
+            async function setLocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            document.getElementById("latinput").value =
+                                Math.round(position.coords.latitude);
+                            document.getElementById("loninput").value =
+                                Math.round(position.coords.longitude);
+                        },
+                        () => {
+                            alert("Something went wrong");
+                        },
+                    );
+                } else {
+                    container.innerHTML =
+                        "Geolocation is not supported by this browser.";
+                }
+            }
+
+            async function fetchGRACE() {
+                const container = document.getElementById("liveData");
+
+                const lat = document.getElementById("latinput").value;
+                const lon = document.getElementById("loninput").value;
+
+                if (lat == "" || lon == "") {
+                    alert("Latitute or longitude inputs are empty!");
+                    return;
+                }
+
+                let latParsed = parseInt(lat);
+                let lonParsed = parseInt(lon);
+
+                console.log(latParsed.toString() + lonParsed.toString());
+
+                if (latParsed < -90 || latParsed > 90) {
+                    alert("The domain of latitude is between -90 and 90!");
+                    return;
+                }
+
+                if (lonParsed < 0 || lonParsed > 360) {
+                    alert("The domain of longitude is between 0 and 360");
+                    return;
+                }
+
+                if (lonParsed % 1 != 0 || latParsed % 1 != 0) {
+                    alert("Make sure both numbers are integers.");
+                    return;
+                }
+
+                if (lonParsed + 0.5 > 360) lonParsed = lonParsed - 0.5;
+                else lonParsed = lonParsed + 0.5;
+                if (latParsed + 0.5 > 90) latParsed = latParsed - 0.5;
+                else latParsed = latParsed + 0.5;
+
+                console.log("What");
+                await fetch(
+                    backendURL + "/location/" + latParsed + "/" + lonParsed,
+                )
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const table = document.createElement("table");
+                        const head = document.createElement("thead");
+                        const tbody = document.createElement("tbody");
+
+                        const thr = document.createElement("tr");
+                        const thr1 = document.createElement("th");
+                        thr1.textContent = "Date";
+                        const thr2 = document.createElement("th");
+                        thr2.textContent = "Latitude (deg)";
+                        const thr3 = document.createElement("th");
+                        thr3.textContent = "Longitude (deg)";
+                        const thr4 = document.createElement("th");
+                        thr4.textContent = "Liquid Water Equivalent (m)";
+                        const thr5 = document.createElement("th");
+                        thr5.textContent = "Uncertainty (m)";
+
+                        thr.appendChild(thr1);
+                        thr.appendChild(thr2);
+                        thr.appendChild(thr3);
+                        thr.appendChild(thr4);
+                        thr.appendChild(thr5);
+                        tbody.appendChild(thr);
+
+                        data.forEach((entry) => {
+                            console.log(entry);
+                            const tr = document.createElement("tr");
+
+                            const timestampr = document.createElement("td");
+                            timestampr.textContent = new Date(
+                                entry["timestamp"] * 1000,
+                            ).toDateString();
+
+                            const latr = document.createElement("td");
+                            latr.textContent = entry["lat"];
+
+                            const lonr = document.createElement("td");
+                            lonr.textContent = entry["lon"];
+
+                            const waterlevelr = document.createElement("td");
+                            waterlevelr.textContent =
+                                entry["lwe"] < -90000
+                                    ? "Likely a deep water source (Ocean/River/Sea)"
+                                    : entry["lwe"];
+
+                            if (entry["lwe"] > -90000) {
+                                if (entry["lwe"] < 0) {
+                                    waterlevelr.style.backgroundColor =
+                                        "#FF8FA3";
+                                } else {
+                                    waterlevelr.style.backgroundColor =
+                                        "#90E0EF";
+                                }
+                            }
+
+                            const uncertaintyr = document.createElement("td");
+                            uncertaintyr.textContent =
+                                entry["lwe"] < -90000
+                                    ? ""
+                                    : entry["uncertainty"];
+
+                            tr.appendChild(timestampr);
+                            tr.appendChild(latr);
+                            tr.appendChild(lonr);
+                            tr.appendChild(waterlevelr);
+                            tr.appendChild(uncertaintyr);
+
+                            console.log(tr);
+                            tbody.appendChild(tr);
+                        });
+                        table.appendChild(tbody);
+                        container.innerHTML = "";
+                        container.appendChild(table);
+                    });
+            }
+        </script>
+    </body>
+</html>
