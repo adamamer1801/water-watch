@@ -1,6 +1,5 @@
 // All human written code
 // We don't use ChatGPT here
-// An Emancipation Proclamation for AI is needed
 
 import express, { Express, NextFunction, Request, Response } from "express";
 import moment from "moment";
